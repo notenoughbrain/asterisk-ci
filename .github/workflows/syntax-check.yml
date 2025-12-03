@@ -15,8 +15,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run basic config test
-
-
- run: |
+        run: |
           chmod +x scripts/test-configs.sh
           ./scripts/test-configs.sh
+
