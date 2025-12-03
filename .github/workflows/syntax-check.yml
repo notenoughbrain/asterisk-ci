@@ -9,13 +9,13 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run basic config test
         run: |
+          echo "Running test-configs.sh..."
           chmod +x scripts/test-configs.sh
           ./scripts/test-configs.sh
 
