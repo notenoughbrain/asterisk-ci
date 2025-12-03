@@ -1,0 +1,25 @@
+name: Asterisk rollback PROD
+
+on:
+  workflow_dispatch:
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rollback last backup
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_HOST.split('@')[0] }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            LAST_BACKUP=$(ls -1d /etc/asterisk-backup-* 2>/dev/null | sort | tail -n 1)
+            if [ -z "$LAST_BACKUP" ]; then
+              echo "No backups found"
+              exit 1
+            fi
+            echo "Restoring from $LAST_BACKUP"
+            sudo cp -a "$LAST_BACKUP/." "${{ secrets.ASTERISK_CONFIG_PATH }}/"
+            sudo asterisk -rx "core reload"
