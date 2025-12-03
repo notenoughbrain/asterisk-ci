@@ -1,21 +1,17 @@
-name: Syntax Check
-
-on:
-  push:
-    paths:
-      - "configs/**"
-      - "scripts/test-configs.sh"
-
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Run basic config test
         run: |
-          echo "Running test-configs.sh..."
+          echo "Current directory: $(pwd)"
+          ls -l configs
           chmod +x scripts/test-configs.sh
           ./scripts/test-configs.sh
 
