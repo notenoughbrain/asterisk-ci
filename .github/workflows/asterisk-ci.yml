@@ -6,9 +6,12 @@ on:
       - "configs/**"
       - ".github/workflows/**"
 
+  workflow_dispatch:
+
 jobs:
-  syntax-check:
+  deploy:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -18,6 +21,35 @@ jobs:
           pwd
           ls -R
 
-      - name: Basic syntax check (placeholder)
+      - name: Deploy to STAGE
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.STAGE_HOST }}
+          username: ${{ secrets.STAGE_HOST.split('@')[0] }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            BACKUP_DIR=/etc/asterisk-backup-$(date +%Y%m%d%H%M%S)
+            sudo mkdir -p "$BACKUP_DIR"
+            sudo cp -a "${{ secrets.ASTERISK_CONFIG_PATH }}/." "$BACKUP_DIR/"
+            rsync -az --delete configs/ "${{ secrets.STAGE_HOST }}:${{ secrets.ASTERISK_CONFIG_PATH }}/"
+            sudo asterisk -rx "core reload" || { echo "Asterisk reload failed"; exit 1; }
+
+      - name: Health check STAGE
         run: |
-          echo "Здесь позже будет проверка синтаксиса Asterisk"
+          echo "Здесь можно повесить curl-запрос или тестовый звонок через API"
+
+      - name: Deploy to PROD
+        if: success()
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_HOST.split('@')[0] }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            set -e
+            BACKUP_DIR=/etc/asterisk-backup-$(date +%Y%m%d%H%M%S)
+            sudo mkdir -p "$BACKUP_DIR"
+            sudo cp -a "${{ secrets.ASTERISK_CONFIG_PATH }}/." "$BACKUP_DIR/"
+            rsync -az --delete configs/ "${{ secrets.PROD_HOST }}:${{ secrets.ASTERISK_CONFIG_PATH }}/"
+            sudo asterisk -rx "core reload" || { echo "Asterisk reload failed"; exit 1; }
