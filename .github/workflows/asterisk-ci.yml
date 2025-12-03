@@ -1,0 +1,23 @@
+name: Asterisk CI/CD
+
+on:
+  push:
+    paths:
+      - "configs/**"
+      - ".github/workflows/**"
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: List files (debug)
+        run: |
+          pwd
+          ls -R
+
+      - name: Basic syntax check (placeholder)
+        run: |
+          echo "Здесь позже будет проверка синтаксиса Asterisk"
